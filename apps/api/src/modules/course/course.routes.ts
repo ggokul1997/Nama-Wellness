@@ -26,6 +26,10 @@ import {
   handleGetCourseEnrollments,
   handleUpdateLessonProgress
 } from '../enrollment/enrollment.controller';
+import {
+  handleGetBatches,
+  handleCreateBatch
+} from '../scheduling/scheduling.controller';
 import { 
   createCourseSchema, 
   updateCourseSchema,
@@ -41,7 +45,8 @@ import {
   assignTeacherSchema,
   adminAssignEnrollmentSchema,
   corporateEnrollSchema,
-  updateLessonProgressSchema
+  updateLessonProgressSchema,
+  createBatchSchema
 } from '@nama/shared';
 import { validate } from '../../middleware/validate';
 import { authenticate, requireRole, optionalAuthenticate } from '../../middleware/auth.middleware';
@@ -86,5 +91,9 @@ router.get('/:courseId/enrollments', authenticate, requireRole(['teacher', 'admi
 
 // Lesson progress tracking
 router.post('/:courseId/lessons/:lessonId/progress', authenticate, requireRole(['student', 'employee']), validate(updateLessonProgressSchema), handleUpdateLessonProgress);
+
+// Course batches routes
+router.get('/:courseId/batches', authenticate, handleGetBatches);
+router.post('/:courseId/batches', authenticate, requireRole(['teacher', 'admin']), validate(createBatchSchema), handleCreateBatch);
 
 export default router;

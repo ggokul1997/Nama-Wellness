@@ -238,3 +238,40 @@ export const updateLessonProgressSchema = z.object({
 });
 
 export type UpdateLessonProgressInput = z.infer<typeof updateLessonProgressSchema>;
+
+export const createBatchSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  capacity: z.number().int().positive('Capacity must be positive'),
+  startDate: z.string().datetime({ message: 'Invalid start date format' }),
+  endDate: z.string().datetime({ message: 'Invalid end date format' }).optional().nullable()
+});
+
+export const updateBatchSchema = createBatchSchema.partial().extend({
+  status: z.enum(['upcoming', 'active', 'completed', 'cancelled']).optional()
+});
+
+export const createSessionSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  scheduledAt: z.string().datetime({ message: 'Invalid scheduled time' }),
+  durationMinutes: z.number().int().positive('Duration must be positive')
+});
+
+export const updateSessionSchema = createSessionSchema.partial().extend({
+  status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']).optional(),
+  startedAt: z.string().datetime().optional().nullable(),
+  endedAt: z.string().datetime().optional().nullable(),
+  meetLink: z.string().url().optional().nullable(),
+  calendarEventId: z.string().optional().nullable()
+});
+
+export type CreateBatchInput = z.infer<typeof createBatchSchema>;
+export type UpdateBatchInput = z.infer<typeof updateBatchSchema>;
+export type CreateSessionInput = z.infer<typeof createSessionSchema>;
+export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
+
+export const getSessionsQuerySchema = z.object({
+  startDate: z.string().datetime({ message: 'Invalid start date format' }).optional(),
+  endDate: z.string().datetime({ message: 'Invalid end date format' }).optional()
+});
+
+export type GetSessionsQueryInput = z.infer<typeof getSessionsQuerySchema>;

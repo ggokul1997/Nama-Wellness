@@ -451,6 +451,7 @@ model Batch {
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
   enrollments   Enrollment[]
+  classSessions ClassSession[]
 
   @@map("batches")
 }
@@ -507,4 +508,29 @@ model LessonProgress {
 
   @@unique([enrollmentId, lessonId])
   @@map("lesson_progress")
+}
+
+enum SessionStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+model ClassSession {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batchId           String        @map("batch_id") @db.Uuid
+  batch             Batch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  title             String        @db.VarChar(255)
+  scheduledAt       DateTime      @map("scheduled_at") @db.Timestamptz
+  durationMinutes   Int           @map("duration_minutes")
+  meetLink          String?       @map("meet_link") @db.Text
+  calendarEventId   String?       @map("calendar_event_id") @db.VarChar(255)
+  status            SessionStatus @default(scheduled)
+  startedAt         DateTime?     @map("started_at") @db.Timestamptz
+  endedAt           DateTime?     @map("ended_at") @db.Timestamptz
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@map("class_sessions")
 }
