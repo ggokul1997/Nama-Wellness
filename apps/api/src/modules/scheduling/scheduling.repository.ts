@@ -14,7 +14,11 @@ export class SchedulingRepository {
     return prisma.batch.findUnique({
       where: { id },
       include: {
-        course: true
+        course: {
+          include: {
+            teacher: true
+          }
+        }
       }
     });
   }

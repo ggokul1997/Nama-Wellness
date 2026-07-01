@@ -3,6 +3,7 @@ import { courseRepository } from '../course/course.repository';
 import { enrollmentRepository } from '../enrollment/enrollment.repository';
 import { CreateBatchInput, UpdateBatchInput, CreateSessionInput, UpdateSessionInput, GetSessionsQueryInput } from '@nama/shared';
 import { ForbiddenError, NotFoundError } from '../../utils/errors';
+import { googleCalendarService } from '../../services/google-calendar.service';
 
 export class SchedulingService {
   // Batch CRUD Service
@@ -84,12 +85,30 @@ export class SchedulingService {
       throw new ForbiddenError('You do not have permission to create sessions for this batch');
     }
 
-    // Generate mock Meet details
-    const suffix1 = Math.random().toString(36).substring(2, 5);
-    const suffix2 = Math.random().toString(36).substring(2, 6);
-    const suffix3 = Math.random().toString(36).substring(2, 5);
-    const meetLink = `https://meet.google.com/${suffix1}-${suffix2}-${suffix3}`;
-    const calendarEventId = `mock_event_${Math.random().toString(36).substring(2, 15)}`;
+    const attendeeEmails: string[] = [];
+    const teacherEmail = (batch.course as any).teacher?.email;
+    if (teacherEmail) {
+      attendeeEmails.push(teacherEmail);
+    }
+
+    const enrollments = await enrollmentRepository.findMany({ courseId: batch.courseId, status: 'active' });
+    enrollments.items.forEach((item: any) => {
+      if (item.user?.email) {
+        attendeeEmails.push(item.user.email);
+      }
+    });
+
+    const scheduledAt = new Date(input.scheduledAt);
+    const durationMinutes = input.durationMinutes;
+    const endTime = new Date(scheduledAt.getTime() + durationMinutes * 60 * 1000);
+
+    const { meetLink, calendarEventId } = await googleCalendarService.createCalendarEvent({
+      title: `${batch.course.title} - ${input.title}`,
+      description: `Class session for batch ${batch.name} of course ${batch.course.title}`,
+      startTime: scheduledAt,
+      endTime,
+      attendeeEmails
+    });
 
     return schedulingRepository.createSession(batchId, {
       ...input,

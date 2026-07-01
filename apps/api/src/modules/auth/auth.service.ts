@@ -6,6 +6,7 @@ import { generateAccessToken, generateRefreshTokenValue, hashRefreshToken } from
 import { generateOTPCode, hashOTPCode, sendMockOTPEmail } from '../../utils/otp';
 import logger from '../../infrastructure/logger/logger';
 import redisClient from '../../infrastructure/redis/redis.client';
+import prisma from '../../infrastructure/database/prisma.client';
 
 export class AuthService {
   async register(input: RegisterInput) {
@@ -196,6 +197,19 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(input.password, 10);
     const user = await authRepository.createCorporateUser(input, passwordHash, company.id);
+
+    // Consume the pending invite if it exists
+    await prisma.employeeInvite.updateMany({
+      where: {
+        email: input.email,
+        companyId: company.id,
+        status: 'pending'
+      },
+      data: {
+        status: 'accepted',
+        acceptedAt: new Date()
+      }
+    });
 
     // Send email verification OTP immediately upon registration
     await this.sendEmailVerificationOTP(user.email);

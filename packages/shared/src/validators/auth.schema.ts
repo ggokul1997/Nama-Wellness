@@ -275,3 +275,115 @@ export const getSessionsQuerySchema = z.object({
 });
 
 export type GetSessionsQueryInput = z.infer<typeof getSessionsQuerySchema>;
+
+export const proposeReplacementRecordingSchema = z.object({
+  fileUrl: z.string().url('File URL must be a valid URL'),
+  fileName: z.string().min(1, 'File name is required')
+});
+
+export const rejectReplacementSchema = z.object({
+  reason: z.string().min(1, 'Reason must be at least 1 character long')
+});
+
+export const adminOverrideAccessSchema = z.object({
+  enrollmentId: z.string().uuid('Invalid enrollment ID'),
+  maxReplayCount: z.number().int().nonnegative('Replay count must be non-negative').optional().nullable(),
+  reason: z.string().optional()
+});
+
+export type ProposeReplacementRecordingInput = z.infer<typeof proposeReplacementRecordingSchema>;
+export type RejectReplacementInput = z.infer<typeof rejectReplacementSchema>;
+export type AdminOverrideAccessInput = z.infer<typeof adminOverrideAccessSchema>;
+
+export const setAvailabilitySchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6, 'Day of week must be between 0 (Sunday) and 6 (Saturday)'),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Start time must be in HH:MM format'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'End time must be in HH:MM format'),
+  isRecurring: z.boolean().default(true)
+});
+
+export const bookSessionSchema = z.object({
+  teacherId: z.string().uuid('Invalid teacher ID'),
+  slotStart: z.string().datetime({ message: 'Invalid slot start time' }),
+  slotEnd: z.string().datetime({ message: 'Invalid slot end time' })
+});
+
+export const updateBookingSchema = z.object({
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'no_show'])
+});
+
+export type SetAvailabilityInput = z.infer<typeof setAvailabilitySchema>;
+export type BookSessionInput = z.infer<typeof bookSessionSchema>;
+export type UpdateBookingInput = z.infer<typeof updateBookingSchema>;
+
+export const initiateCoursePaymentSchema = z.object({
+  courseId: z.string().uuid('Invalid course ID'),
+  batchId: z.string().uuid('Invalid batch ID'),
+  gateway: z.enum(['razorpay', 'stripe', 'upi'])
+});
+
+export const initiateOnboardingPaymentSchema = z.object({
+  gateway: z.enum(['razorpay', 'stripe', 'upi'])
+});
+
+export const initiateSubscriptionPaymentSchema = z.object({
+  tier: z.enum(['up_to_10', 'up_to_25', 'up_to_50', 'up_to_100', 'custom']),
+  gateway: z.enum(['razorpay', 'stripe', 'upi'])
+});
+
+export const verifyPaymentSchema = z.object({
+  paymentId: z.string().uuid('Invalid payment ID'),
+  gatewayPaymentId: z.string().min(1, 'Gateway payment ID is required'),
+  gatewaySignature: z.string().min(1, 'Gateway signature is required')
+});
+
+export const requestRefundSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export const rejectRefundSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export const adminRefundOverrideSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export type InitiateCoursePaymentInput = z.infer<typeof initiateCoursePaymentSchema>;
+export type InitiateOnboardingPaymentInput = z.infer<typeof initiateOnboardingPaymentSchema>;
+export type InitiateSubscriptionPaymentInput = z.infer<typeof initiateSubscriptionPaymentSchema>;
+export type VerifyPaymentInput = z.infer<typeof verifyPaymentSchema>;
+export type RequestRefundInput = z.infer<typeof requestRefundSchema>;
+export type RejectRefundInput = z.infer<typeof rejectRefundSchema>;
+export type AdminRefundOverrideInput = z.infer<typeof adminRefundOverrideSchema>;
+
+export const createCompanySchema = z.object({
+  name: z.string().min(1, 'Company name is required'),
+  contactEmail: z.string().email('Invalid email address'),
+  contactPhone: z.string().optional(),
+  employeeLimit: z.number().int().positive('Employee limit must be positive')
+});
+
+export const updateCompanySchema = z.object({
+  name: z.string().min(1, 'Company name is required').optional(),
+  status: z.enum(['active', 'suspended', 'inactive']).optional(),
+  employeeLimit: z.number().int().positive('Employee limit must be positive').optional()
+});
+
+export const sendInviteSchema = z.object({
+  email: z.string().email('Invalid email address')
+});
+
+export const bulkInviteSchema = z.object({
+  csvData: z.string().min(1, 'CSV data is required')
+});
+
+export const deactivateEmployeeSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
+export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
+export type SendInviteInput = z.infer<typeof sendInviteSchema>;
+export type BulkInviteInput = z.infer<typeof bulkInviteSchema>;
+export type DeactivateEmployeeInput = z.infer<typeof deactivateEmployeeSchema>;
