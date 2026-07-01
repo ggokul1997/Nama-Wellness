@@ -1,0 +1,36 @@
+@baseUrl = http://localhost:4000/api/v1
+@authToken = YOUR_JWT_TOKEN
+@applicationId = YOUR_APPLICATION_ID
+@documentId = YOUR_DOCUMENT_ID
+
+### Submit Teacher Application
+POST {{baseUrl}}/teacher/applications
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "specialties": ["Yoga", "Meditation"],
+  "bio": "Certified yoga instructor with 5+ years of experience."
+}
+
+### List Applications
+GET {{baseUrl}}/teacher/applications?status=pending
+Authorization: Bearer {{authToken}}
+
+### Verify Document
+POST {{baseUrl}}/teacher/applications/{{applicationId}}/documents/{{documentId}}/verify
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "verified": true
+}
+
+### Schedule Interview
+POST {{baseUrl}}/teacher/applications/{{applicationId}}/interviews
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "scheduledAt": "2026-07-05T10:00:00.000Z"
+}

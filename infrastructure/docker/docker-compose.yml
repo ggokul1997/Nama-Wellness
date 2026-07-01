@@ -1,0 +1,51 @@
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nama-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: nama_user
+      POSTGRES_PASSWORD: nama_password
+      POSTGRES_DB: nama_wellness
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nama_user -d nama_wellness"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nama-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: nama-localstack
+    restart: always
+    ports:
+      - '4566:4566'
+    environment:
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./init-localstack.sh:/etc/localstack/init/ready.d/init-localstack.sh
+
+volumes:
+  postgres_data:
+  redis_data:
+  localstack_data:

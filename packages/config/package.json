@@ -1,0 +1,10 @@
+{
+  "name": "@nama/config",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./package.json": "./package.json",
+    "./eslint/*": "./eslint/*",
+    "./typescript/*": "./typescript/*"
+  }
+}
