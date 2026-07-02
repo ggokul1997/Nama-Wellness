@@ -49,7 +49,7 @@ import {
   createBatchSchema
 } from '@nama/shared';
 import { validate } from '../../middleware/validate';
-import { authenticate, requireRole, optionalAuthenticate } from '../../middleware/auth.middleware';
+import { authenticate, requireRole, optionalAuthenticate, requireTeacherActivated } from '../../middleware/auth.middleware';
 
 const router = Router();
 
@@ -59,8 +59,8 @@ router.get('/:courseId', optionalAuthenticate, handleGetCourseById);
 router.get('/:courseId/modules', optionalAuthenticate, handleGetModules);
 
 // Teacher/Admin routes
-router.post('/', authenticate, requireRole(['teacher', 'admin']), validate(createCourseSchema), handleCreateCourse);
-router.patch('/:courseId', authenticate, requireRole(['teacher', 'admin']), validate(updateCourseSchema), handleUpdateCourse);
+router.post('/', authenticate, requireRole(['teacher', 'admin']), requireTeacherActivated, validate(createCourseSchema), handleCreateCourse);
+router.patch('/:courseId', authenticate, requireRole(['teacher', 'admin']), requireTeacherActivated, validate(updateCourseSchema), handleUpdateCourse);
 
 // Modules CRUD routes
 router.post('/:courseId/modules', authenticate, requireRole(['teacher', 'admin']), validate(createModuleSchema), handleCreateModule);
@@ -94,6 +94,6 @@ router.post('/:courseId/lessons/:lessonId/progress', authenticate, requireRole([
 
 // Course batches routes
 router.get('/:courseId/batches', authenticate, handleGetBatches);
-router.post('/:courseId/batches', authenticate, requireRole(['teacher', 'admin']), validate(createBatchSchema), handleCreateBatch);
+router.post('/:courseId/batches', authenticate, requireRole(['teacher', 'admin']), requireTeacherActivated, validate(createBatchSchema), handleCreateBatch);
 
 export default router;

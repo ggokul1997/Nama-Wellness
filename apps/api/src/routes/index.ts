@@ -12,6 +12,15 @@ import recordingsRouter from '../modules/recordings/recordings.routes';
 import bookingsRouter from '../modules/bookings/bookings.routes';
 import paymentsRouter from '../modules/payments/payments.routes';
 import companiesRouter from '../modules/companies/companies.routes';
+import chatRouter from '../modules/chat/chat.routes';
+import notificationsRouter from '../modules/notifications/notifications.routes';
+import certificatesRouter from '../modules/certificates/certificates.routes';
+import reviewsRouter from '../modules/reviews/reviews.routes';
+import payoutsRouter from '../modules/payouts/payouts.routes';
+import analyticsRouter from '../modules/analytics/analytics.routes';
+import aiRouter from '../modules/ai/ai.routes';
+import aiReportsRouter from '../modules/ai-reports/ai-reports.routes';
+import adminModerationRouter from '../modules/admin-moderation/admin-moderation.routes';
 
 const router = Router();
 
@@ -20,6 +29,7 @@ router.use('/auth', authRouter);
 router.use('/teacher', teacherRouter);
 router.use('/uploads', uploadsRouter);
 router.use('/categories', categoryRouter);
+router.use('/', aiRouter); // Mount AI recommendations before courses router so it intercepts /courses/recommendations
 router.use('/courses', courseRouter);
 router.use('/enrollments', enrollmentRouter);
 router.use('/', schedulingRouter);
@@ -28,5 +38,13 @@ router.use('/', recordingsRouter);
 router.use('/', bookingsRouter);
 router.use('/', paymentsRouter);
 router.use('/', companiesRouter);
+router.use('/', chatRouter);
+router.use('/', notificationsRouter);
+router.use('/', certificatesRouter);
+router.use('/', reviewsRouter);
+router.use('/', payoutsRouter);
+router.use('/', analyticsRouter);
+router.use('/', aiReportsRouter);
+router.use('/', adminModerationRouter);
 
 export default router;

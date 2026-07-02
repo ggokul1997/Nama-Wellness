@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors';
+import prisma from '../infrastructure/database/prisma.client';
 
 const JWT_SECRET = (process.env.JWT_SECRET || 'supersecretnamawellnessdevkey2026!') as string;
 
@@ -69,4 +70,24 @@ export function optionalAuthenticate(req: Request, _res: Response, next: NextFun
   } catch (err) {
     next();
   }
+}
+
+export async function requireTeacherActivated(req: Request, _res: Response, next: NextFunction) {
+  if (!req.user) {
+    return next(new UnauthorizedError('Authentication required'));
+  }
+
+  if (req.user.roles.includes('admin')) {
+    return next();
+  }
+
+  const profile = await prisma.teacherProfile.findUnique({
+    where: { userId: req.user.userId }
+  });
+
+  if (!profile || !profile.onboardingFeePaid) {
+    return next(new ForbiddenError('Teacher onboarding fee payment required for account activation'));
+  }
+
+  next();
 }

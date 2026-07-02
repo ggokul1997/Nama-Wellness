@@ -13,13 +13,13 @@ import {
   updateBookingSchema
 } from '@nama/shared';
 import { validate } from '../../middleware/validate';
-import { authenticate, requireRole } from '../../middleware/auth.middleware';
+import { authenticate, requireRole, requireTeacherActivated } from '../../middleware/auth.middleware';
 
 const router = Router();
 
 // Availability endpoints
 router.get('/teacher/availability', authenticate, requireRole(['teacher']), handleGetTeacherAvailability);
-router.post('/teacher/availability', authenticate, requireRole(['teacher']), validate(setAvailabilitySchema), handleCreateTeacherAvailability);
+router.post('/teacher/availability', authenticate, requireRole(['teacher']), requireTeacherActivated, validate(setAvailabilitySchema), handleCreateTeacherAvailability);
 router.get('/teachers/:teacherId/availability', authenticate, handleGetAvailableSlots);
 
 // Bookings endpoints

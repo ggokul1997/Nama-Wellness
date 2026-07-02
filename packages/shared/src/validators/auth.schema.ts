@@ -387,3 +387,81 @@ export type UpdateCompanyInput = z.infer<typeof updateCompanySchema>;
 export type SendInviteInput = z.infer<typeof sendInviteSchema>;
 export type BulkInviteInput = z.infer<typeof bulkInviteSchema>;
 export type DeactivateEmployeeInput = z.infer<typeof deactivateEmployeeSchema>;
+
+export const createConversationSchema = z.object({
+  participantId: z.string().uuid('Invalid participant ID'),
+  courseId: z.string().uuid('Invalid course ID').optional()
+});
+
+export const sendMessageSchema = z.object({
+  messageType: z.enum(['text', 'file']),
+  body: z.string().optional(),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional()
+});
+
+export type CreateConversationInput = z.infer<typeof createConversationSchema>;
+export type SendMessageInput = z.infer<typeof sendMessageSchema>;
+
+export const revokeCertificateSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export type RevokeCertificateInput = z.infer<typeof revokeCertificateSchema>;
+
+export const submitReviewSchema = z.object({
+  courseId: z.string().uuid('Invalid course ID'),
+  rating: z.number().int().min(1, 'Rating must be at least 1').max(5, 'Rating cannot exceed 5'),
+  comment: z.string().optional()
+});
+
+export const deleteReviewSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;
+export type DeleteReviewInput = z.infer<typeof deleteReviewSchema>;
+
+export const commissionConfigSchema = z.object({
+  platformRate: z.number().min(0).max(100),
+  teacherRate: z.number().min(0).max(100),
+  effectiveFrom: z.string()
+});
+
+export const holdPayoutSchema = z.object({
+  reason: z.string().min(1, 'Reason is required')
+});
+
+export const generateReportSchema = z.object({
+  reportType: z.string().min(1, 'Report type is required'),
+  periodStart: z.string().min(1, 'Period start date is required'),
+  periodEnd: z.string().min(1, 'Period end date is required')
+});
+
+export type CommissionConfigInput = z.infer<typeof commissionConfigSchema>;
+export type HoldPayoutInput = z.infer<typeof holdPayoutSchema>;
+export type GenerateReportInput = z.infer<typeof generateReportSchema>;
+
+export const updateUserStatusSchema = z.object({
+  status: z.enum(['active', 'suspended', 'terminated'])
+});
+
+export const updateTeacherPerformanceSchema = z.object({
+  performanceStatus: z.enum(['good_standing', 'warning', 'probation', 'suspension', 'terminated'])
+});
+
+export const createComplaintSchema = z.object({
+  teacherId: z.string().uuid('Invalid teacher ID format'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title cannot exceed 200 characters'),
+  description: z.string().min(1, 'Description is required')
+});
+
+export const resolveComplaintSchema = z.object({
+  status: z.enum(['resolved', 'dismissed']),
+  resolution: z.string().min(1, 'Resolution details are required')
+});
+
+export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+export type UpdateTeacherPerformanceInput = z.infer<typeof updateTeacherPerformanceSchema>;
+export type CreateComplaintInput = z.infer<typeof createComplaintSchema>;
+export type ResolveComplaintInput = z.infer<typeof resolveComplaintSchema>;

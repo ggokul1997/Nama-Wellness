@@ -3,7 +3,7 @@ import prisma from '../../infrastructure/database/prisma.client';
 import { companiesRepository } from './companies.repository';
 import { CreateCompanyInput, UpdateCompanyInput, SendInviteInput, BulkInviteInput } from '@nama/shared';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../../utils/errors';
-import logger from '../../infrastructure/logger/logger';
+import { emailService } from '../../services/email.service';
 
 export class CompaniesService {
   async getCompanyMe(userId: string) {
@@ -106,7 +106,15 @@ export class CompaniesService {
       expiresAt
     });
 
-    logger.info(`[INVITATION EMAIL] Invitation link: http://localhost:3000/register/corporate?token=${token}&email=${input.email}`);
+    await emailService.sendEmail({
+      to: invite.email,
+      template: 'invite',
+      subject: `Invitation to join ${myCompany.name} on Nama Wellness`,
+      context: {
+        companyName: myCompany.name,
+        link: `http://localhost:3000/register/corporate?token=${token}&email=${invite.email}`
+      }
+    });
 
     return {
       id: invite.id,
@@ -155,6 +163,16 @@ export class CompaniesService {
         expiresAt
       });
       createdInvites.push(invite);
+
+      await emailService.sendEmail({
+        to: email,
+        template: 'invite',
+        subject: `Invitation to join ${myCompany.name} on Nama Wellness`,
+        context: {
+          companyName: myCompany.name,
+          link: `http://localhost:3000/register/corporate?token=${token}&email=${email}`
+        }
+      });
     }
 
     return { imported: emails.length };

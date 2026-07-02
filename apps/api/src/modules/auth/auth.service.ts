@@ -3,10 +3,11 @@ import { authRepository } from './auth.repository';
 import { RegisterInput, LoginInput, LoginResponseDto, PasswordResetCompleteInput, RegisterCorporateInput } from '@nama/shared';
 import { BadRequestError, UnauthorizedError } from '../../utils/errors';
 import { generateAccessToken, generateRefreshTokenValue, hashRefreshToken } from '../../utils/tokens';
-import { generateOTPCode, hashOTPCode, sendMockOTPEmail } from '../../utils/otp';
+import { generateOTPCode, hashOTPCode } from '../../utils/otp';
 import logger from '../../infrastructure/logger/logger';
 import redisClient from '../../infrastructure/redis/redis.client';
 import prisma from '../../infrastructure/database/prisma.client';
+import { emailService } from '../../services/email.service';
 
 export class AuthService {
   async register(input: RegisterInput) {
@@ -34,6 +35,13 @@ export class AuthService {
     const user = await authRepository.findUserWithRelations(input.email);
     if (!user) {
       throw new UnauthorizedError('Invalid email or password');
+    }
+
+    if (user.status === 'suspended') {
+      throw new UnauthorizedError('Your account has been suspended by the administrator');
+    }
+    if (user.status === 'terminated') {
+      throw new UnauthorizedError('Your account has been terminated');
     }
 
     const userRoles = user.roles.map((r) => r.role);
@@ -117,7 +125,12 @@ export class AuthService {
     expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes lifetime
 
     await authRepository.saveOTPVerification(email, codeHash, 'email_verify', expiresAt);
-    await sendMockOTPEmail(email, code, 'Email Verification');
+    await emailService.sendEmail({
+      to: email,
+      template: 'verify',
+      subject: 'Verify your email address',
+      context: { code }
+    });
   }
 
   async verifyEmail(email: string, code: string): Promise<void> {
@@ -156,7 +169,12 @@ export class AuthService {
     expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes lifetime
 
     await authRepository.saveOTPVerification(email, codeHash, 'password_reset', expiresAt);
-    await sendMockOTPEmail(email, code, 'Password Reset');
+    await emailService.sendEmail({
+      to: email,
+      template: 'verify',
+      subject: 'Verify your email address - Password Reset',
+      context: { code }
+    });
   }
 
   async completePasswordReset(input: PasswordResetCompleteInput): Promise<void> {

@@ -1,4 +1,5 @@
 import app from './app';
+import './infrastructure/queue/worker';
 
 const PORT = process.env.PORT || 4000;
 
