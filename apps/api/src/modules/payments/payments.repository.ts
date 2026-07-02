@@ -34,6 +34,16 @@ export class PaymentsRepository {
     });
   }
 
+  async findPaymentByGatewayOrderId(gatewayOrderId: string) {
+    const payments = await prisma.payment.findMany({
+      where: { status: 'pending' }
+    });
+    return payments.find(p => {
+      const meta = p.metadata as any;
+      return meta?.gatewayOrderId === gatewayOrderId;
+    }) || null;
+  }
+
   async updatePaymentStatus(id: string, params: {
     status: PaymentStatus;
     gatewayPaymentId?: string;

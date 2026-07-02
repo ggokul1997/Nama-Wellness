@@ -166,6 +166,10 @@ export class BookingsService {
       throw new ForbiddenError('You do not have permission to cancel this booking');
     }
 
+    if (booking.calendarEventId) {
+      await googleCalendarService.deleteCalendarEvent(booking.calendarEventId);
+    }
+
     return bookingsRepository.updateBookingStatus(bookingId, 'cancelled');
   }
 }

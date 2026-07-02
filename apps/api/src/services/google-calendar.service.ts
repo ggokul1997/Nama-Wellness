@@ -80,6 +80,64 @@ export class GoogleCalendarService {
       return { meetLink, calendarEventId };
     }
   }
+
+  async updateCalendarEvent(
+    calendarEventId: string,
+    params: {
+      title: string;
+      description: string;
+      startTime: Date;
+      endTime: Date;
+      attendeeEmails: string[];
+    }
+  ) {
+    if (!this.isConfigured || !calendarEventId || calendarEventId.startsWith('mock_')) {
+      logger.info({ calendarEventId }, 'Skipping Google Calendar event update (not configured or mock event)');
+      return;
+    }
+
+    try {
+      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      await calendar.events.patch({
+        calendarId: 'primary',
+        eventId: calendarEventId,
+        requestBody: {
+          summary: params.title,
+          description: params.description,
+          start: {
+            dateTime: params.startTime.toISOString(),
+            timeZone: 'UTC',
+          },
+          end: {
+            dateTime: params.endTime.toISOString(),
+            timeZone: 'UTC',
+          },
+          attendees: params.attendeeEmails.map(email => ({ email })),
+        }
+      });
+      logger.info({ calendarEventId }, 'Updated Google Calendar event successfully');
+    } catch (error) {
+      logger.error({ error, calendarEventId }, 'Failed to update Google Calendar event');
+    }
+  }
+
+  async deleteCalendarEvent(calendarEventId: string) {
+    if (!this.isConfigured || !calendarEventId || calendarEventId.startsWith('mock_')) {
+      logger.info({ calendarEventId }, 'Skipping Google Calendar event deletion (not configured or mock event)');
+      return;
+    }
+
+    try {
+      const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+      await calendar.events.delete({
+        calendarId: 'primary',
+        eventId: calendarEventId
+      });
+      logger.info({ calendarEventId }, 'Deleted Google Calendar event successfully');
+    } catch (error) {
+      logger.error({ error, calendarEventId }, 'Failed to delete Google Calendar event');
+    }
+  }
 }
 
 export const googleCalendarService = new GoogleCalendarService();

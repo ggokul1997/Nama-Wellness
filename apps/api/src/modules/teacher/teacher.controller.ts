@@ -200,3 +200,20 @@ export async function handleGetApplicationLogs(
     next(err);
   }
 }
+
+export async function handleGetMyProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.user!.userId;
+    const result = await teacherService.getMyProfile(userId);
+    const response: ApiResponseEnvelope<typeof result> = {
+      data: result
+    };
+    res.status(200).json(response);
+  } catch (err) {
+    next(err);
+  }
+}

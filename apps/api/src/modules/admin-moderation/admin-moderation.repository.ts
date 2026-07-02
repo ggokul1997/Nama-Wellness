@@ -129,6 +129,108 @@ export class AdminModerationRepository {
       }
     });
   }
+
+  async terminateTeacher(teacherId: string, actorId: string, notes: string) {
+    return prisma.$transaction(async (tx) => {
+      // 1. Update user status to terminated
+      await tx.user.update({
+        where: { id: teacherId },
+        data: { status: 'terminated' }
+      });
+
+      // 2. Update TeacherProfile performance status to terminated
+      await tx.teacherProfile.update({
+        where: { userId: teacherId },
+        data: { performanceStatus: 'terminated' }
+      });
+
+      // 3. Reject all courses taught by the teacher
+      const courses = await tx.course.findMany({
+        where: { teacherId }
+      });
+
+      await tx.course.updateMany({
+        where: { teacherId },
+        data: { status: 'rejected' }
+      });
+
+      // 4. Cancel all active individual bookings
+      const bookings = await tx.individualBooking.findMany({
+        where: {
+          teacherId,
+          status: { in: ['pending', 'confirmed'] }
+        }
+      });
+
+      await tx.individualBooking.updateMany({
+        where: {
+          teacherId,
+          status: { in: ['pending', 'confirmed'] }
+        },
+        data: { status: 'cancelled' }
+      });
+
+      // 5. Automatic refunds resolution
+      const orderIds = bookings.map(b => b.orderId).filter((id): id is string => !!id);
+      
+      const orders = await tx.order.findMany({
+        where: {
+          id: { in: orderIds },
+          status: 'paid'
+        },
+        include: {
+          payment: true
+        }
+      });
+
+      const refunds = [];
+      for (const order of orders) {
+        if (order.paymentId && order.payment) {
+          // Check if refund already exists
+          const existingRefund = await tx.refund.findFirst({
+            where: { orderId: order.id }
+          });
+          if (!existingRefund) {
+            const refund = await tx.refund.create({
+              data: {
+                orderId: order.id,
+                paymentId: order.paymentId,
+                amount: order.totalAmount,
+                reason: `Automatic refund due to teacher termination: ${notes}`,
+                status: 'approved',
+                requestedById: actorId,
+                approvedById: actorId,
+                withinRefundWindow: true,
+                processedAt: new Date()
+              }
+            });
+            refunds.push(refund);
+          }
+        }
+      }
+
+      // 6. Create Audit Log
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          action: 'TEACHER_TERMINATE',
+          entityType: 'User',
+          entityId: teacherId,
+          metadata: {
+            notes,
+            cancelledBookingsCount: bookings.length,
+            refundsIssuedCount: refunds.length
+          }
+        }
+      });
+
+      return {
+        resolvedCoursesCount: courses.length,
+        cancelledBookingsCount: bookings.length,
+        refundsIssuedCount: refunds.length
+      };
+    });
+  }
 }
 
 export const adminModerationRepository = new AdminModerationRepository();

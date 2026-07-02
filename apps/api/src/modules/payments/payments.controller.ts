@@ -252,8 +252,15 @@ export async function handleRazorpayWebhook(
       const gatewayOrderId = paymentEntity?.order_id;
 
       if (gatewayOrderId) {
-        const paymentRecord = await paymentsRepository.findPaymentByGatewayId(gatewayPaymentId);
-        if (paymentRecord && paymentRecord.status !== 'completed') {
+        let paymentRecord = null;
+        if (gatewayPaymentId) {
+          paymentRecord = await paymentsRepository.findPaymentByGatewayId(gatewayPaymentId);
+        }
+        if (!paymentRecord) {
+          paymentRecord = await paymentsRepository.findPaymentByGatewayOrderId(gatewayOrderId);
+        }
+
+        if (paymentRecord && paymentRecord.status !== 'completed' && gatewayPaymentId) {
           await paymentsService.verifyPayment(paymentRecord.userId, {
             paymentId: paymentRecord.id,
             gatewayPaymentId,

@@ -158,3 +158,28 @@ export async function handleGetAuditLogs(
     next(err);
   }
 }
+
+export async function handleTerminateTeacher(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const actorId = req.user!.userId;
+    const teacherId = req.params.teacherId as string;
+    const { resolutionNotes } = req.body;
+
+    const result = await adminModerationService.terminateTeacher(
+      actorId,
+      teacherId,
+      resolutionNotes
+    );
+
+    const response: ApiResponseEnvelope<typeof result> = {
+      data: result
+    };
+    res.status(200).json(response);
+  } catch (err) {
+    next(err);
+  }
+}

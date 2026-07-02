@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { handleCreateApplication, handleGetMyApplication, handleAddDocument, handleListApplications, handleGetApplicationById, handleVerifyDocument, handleScheduleInterview, handleUpdateInterview, handleApproveApplication, handleRejectApplication, handleGetApplicationLogs } from './teacher.controller';
+import { handleCreateApplication, handleGetMyApplication, handleAddDocument, handleListApplications, handleGetApplicationById, handleVerifyDocument, handleScheduleInterview, handleUpdateInterview, handleApproveApplication, handleRejectApplication, handleGetApplicationLogs, handleGetMyProfile } from './teacher.controller';
 import { createApplicationSchema, uploadDocumentSchema, verifyDocumentSchema, scheduleInterviewSchema, updateInterviewSchema, approveApplicationSchema, rejectApplicationSchema } from '@nama/shared';
 import { validate } from '../../middleware/validate';
 import { authenticate, requireRole } from '../../middleware/auth.middleware';
@@ -9,6 +9,7 @@ const router = Router();
 // Teacher routes
 router.post('/applications', authenticate, requireRole(['teacher']), validate(createApplicationSchema), handleCreateApplication);
 router.get('/applications/me', authenticate, requireRole(['teacher']), handleGetMyApplication);
+router.get('/profile/me', authenticate, requireRole(['teacher']), handleGetMyProfile);
 router.post('/applications/:applicationId/documents', authenticate, requireRole(['teacher']), validate(uploadDocumentSchema), handleAddDocument);
 
 // Admin routes

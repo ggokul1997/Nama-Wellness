@@ -5,13 +5,15 @@ import {
   handleCreateComplaint,
   handleGetComplaints,
   handleResolveComplaint,
-  handleGetAuditLogs
+  handleGetAuditLogs,
+  handleTerminateTeacher
 } from './admin-moderation.controller';
 import {
   updateUserStatusSchema,
   updateTeacherPerformanceSchema,
   createComplaintSchema,
-  resolveComplaintSchema
+  resolveComplaintSchema,
+  terminateTeacherSchema
 } from '@nama/shared';
 import { validate } from '../../middleware/validate';
 import { authenticate, requireRole } from '../../middleware/auth.middleware';
@@ -68,6 +70,15 @@ router.get(
   authenticate,
   requireRole(['admin']),
   handleGetAuditLogs
+);
+
+// Terminate instructor and resolve active student bookings/refunds (Admin)
+router.post(
+  '/admin/teachers/:teacherId/terminate',
+  authenticate,
+  requireRole(['admin']),
+  validate(terminateTeacherSchema),
+  handleTerminateTeacher
 );
 
 export default router;

@@ -89,6 +89,14 @@ export class TeacherService {
     }
     return teacherRepository.findApplicationLogs(applicationId);
   }
+
+  async getMyProfile(userId: string) {
+    const profile = await teacherRepository.findProfileByUserId(userId);
+    if (!profile) {
+      throw new NotFoundError('Teacher profile not found');
+    }
+    return profile;
+  }
 }
 
 export const teacherService = new TeacherService();

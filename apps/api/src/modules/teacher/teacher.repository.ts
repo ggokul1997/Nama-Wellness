@@ -7,7 +7,7 @@ export class TeacherRepository {
       where: {
         userId,
         status: {
-          in: ['draft', 'pending', 'under_review', 'interview_scheduled']
+          in: ['draft', 'pending', 'under_review', 'interview_scheduled', 'approved']
         }
       }
     });
@@ -265,6 +265,12 @@ export class TeacherRepository {
         }
       },
       orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async findProfileByUserId(userId: string) {
+    return prisma.teacherProfile.findUnique({
+      where: { userId }
     });
   }
 }

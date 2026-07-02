@@ -117,6 +117,15 @@ export class AdminModerationService {
   async listAuditLogs(limit: number = 100) {
     return adminModerationRepository.findAuditLogs(limit);
   }
+
+  async terminateTeacher(
+    actorId: string,
+    teacherId: string,
+    notes: string
+  ) {
+    logger.info({ actorId, teacherId }, 'Admin terminating teacher and resolving active student enrollments');
+    return adminModerationRepository.terminateTeacher(teacherId, actorId, notes);
+  }
 }
 
 export const adminModerationService = new AdminModerationService();

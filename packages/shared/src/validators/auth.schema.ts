@@ -465,3 +465,9 @@ export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 export type UpdateTeacherPerformanceInput = z.infer<typeof updateTeacherPerformanceSchema>;
 export type CreateComplaintInput = z.infer<typeof createComplaintSchema>;
 export type ResolveComplaintInput = z.infer<typeof resolveComplaintSchema>;
+
+export const terminateTeacherSchema = z.object({
+  resolutionNotes: z.string().min(1, 'Resolution notes are required')
+});
+
+export type TerminateTeacherInput = z.infer<typeof terminateTeacherSchema>;

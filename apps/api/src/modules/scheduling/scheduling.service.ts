@@ -4,6 +4,7 @@ import { enrollmentRepository } from '../enrollment/enrollment.repository';
 import { CreateBatchInput, UpdateBatchInput, CreateSessionInput, UpdateSessionInput, GetSessionsQueryInput } from '@nama/shared';
 import { ForbiddenError, NotFoundError } from '../../utils/errors';
 import { googleCalendarService } from '../../services/google-calendar.service';
+import prisma from '../../infrastructure/database/prisma.client';
 
 export class SchedulingService {
   // Batch CRUD Service
@@ -128,6 +129,26 @@ export class SchedulingService {
 
     if (!isAdmin && !isOwner) {
       throw new ForbiddenError('You do not have permission to update this session');
+    }
+
+    if (session.calendarEventId) {
+      const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : new Date(session.scheduledAt);
+      const durationMinutes = input.durationMinutes || session.durationMinutes;
+      const endTime = new Date(scheduledAt.getTime() + durationMinutes * 60 * 1000);
+
+      const enrollments = await prisma.enrollment.findMany({
+        where: { batchId: session.batchId },
+        include: { user: true }
+      });
+      const attendeeEmails = enrollments.map(e => e.user.email).filter(Boolean);
+
+      await googleCalendarService.updateCalendarEvent(session.calendarEventId, {
+        title: `${session.batch.course.title} - ${input.title || session.title}`,
+        description: `Class session for batch ${session.batch.name} of course ${session.batch.course.title}`,
+        startTime: scheduledAt,
+        endTime,
+        attendeeEmails
+      });
     }
 
     return schedulingRepository.updateSession(sessionId, input);

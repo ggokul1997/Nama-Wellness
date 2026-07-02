@@ -96,7 +96,17 @@ export class CourseRepository {
             profile: true,
             teacherProfile: true
           }
-        }
+        },
+        modules: {
+          include: {
+            lessons: true
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
+        },
+        pricing: true,
+        batches: true
       }
     });
   }
